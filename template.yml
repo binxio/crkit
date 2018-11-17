@@ -1,0 +1,63 @@
+Parameters:
+
+  Version:
+    Description: Lambdas are written in a version directory, which is auto incremented on upload
+    Type: String
+
+  S3Bucket:
+    Description: S3bucket where the lambdas are uploaded
+    Type: String
+    Default: binxio-public-eu-west-1
+
+Resources:
+
+  EmptyS3BucketFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-empty-s3-bucket"
+      Handler: lambda.lambda_handler
+      Timeout: 30
+      Role: !GetAtt 'EmptyS3BucketRole.Arn'
+      Runtime: python3.6
+      Code:
+        S3Bucket: !Ref S3Bucket
+        S3Key: !Sub "crkit/${Version}/empty_s3_bucket.zip"
+
+  EmptyS3BucketRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  RandomStringFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-random-string"
+      Handler: lambda.lambda_handler
+      Timeout: 30
+      Role: !GetAtt 'LambdaBasicExecutionRole.Arn'
+      Runtime: python3.6
+      Code:
+        S3Bucket: !Ref S3Bucket
+        S3Key: !Sub "crkit/${Version}/random_string.zip"
+
+  LambdaBasicExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
